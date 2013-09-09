@@ -53,4 +53,10 @@ public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnBnClickedOpen();
 	afx_msg void OnBnClickedSave();
+	afx_msg void OnBnClickedClear();
+//	int m_linewide;
+//	afx_msg void OnNMCustomdrawLinewide(NMHDR *pNMHDR, LRESULT *pResult);
+//	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	CSliderCtrl m_slider;
+	CMFCColorButton m_color;
 };

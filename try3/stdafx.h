@@ -37,6 +37,8 @@
 
 #include <afxcontrolbars.h>     // 功能区和控件条的 MFC 支持
 
+#import "c:\program files\common files\system\ado\msado15.dll" no_namespace rename ("EOF", "adoEOF")
+
 bool SaveBitmap(HBITMAP hBitmap,char* filename);
 
 

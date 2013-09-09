@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "draw.h"
 
-Draw::Draw(int r):radio(r)
+Draw::Draw(int r,int l,int c):radio(r),linewide(l),color(c)
 {
 
 }
@@ -14,6 +14,10 @@ Draw::~Draw()
 
 void Draw::draw (CDC& dc)
 {
+
+	CPen pen(PS_SOLID,linewide,color);
+	dc.SelectObject(pen);
+
 	switch(radio)
 	{
 	case 1:
@@ -37,4 +41,5 @@ void Draw::draw (CDC& dc)
 // 		OLD.DeleteObject();
 		break;
 	}
+	pen.DeleteObject();
 }

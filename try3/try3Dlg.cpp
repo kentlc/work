@@ -23,6 +23,7 @@ Ctry3Dlg::Ctry3Dlg(CWnd* pParent /*=NULL*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	//  m_radio = 0;
 	m_radio1 = 0;
+	//  m_linewide = 0;
 }
 
 void Ctry3Dlg::DoDataExchange(CDataExchange* pDX)
@@ -31,6 +32,10 @@ void Ctry3Dlg::DoDataExchange(CDataExchange* pDX)
 	//  DDX_Control(pDX, IDC_RADIO1, m_radio1);
 	//  DDX_Radio(pDX, IDC_RADIO1, m_radio);
 	DDX_Radio(pDX, IDC_RADIO1, m_radio1);
+	//  DDX_Slider(pDX, IDC_LINEWIDE, m_linewide);
+	//  DDV_MinMaxInt(pDX, m_linewide, 10, 30);
+	DDX_Control(pDX, IDC_LINEWIDE, m_slider);
+	DDX_Control(pDX, IDC_MFCCOLORBUTTON1, m_color);
 }
 
 BEGIN_MESSAGE_MAP(Ctry3Dlg, CDialogEx)
@@ -50,6 +55,9 @@ ON_WM_MOUSEMOVE()
 ON_WM_ERASEBKGND()
 ON_BN_CLICKED(IDC_OPEN, &Ctry3Dlg::OnBnClickedOpen)
 ON_BN_CLICKED(IDC_SAVE, &Ctry3Dlg::OnBnClickedSave)
+ON_BN_CLICKED(IDC_CLEAR, &Ctry3Dlg::OnBnClickedClear)
+//ON_NOTIFY(NM_CUSTOMDRAW, IDC_LINEWIDE, &Ctry3Dlg::OnNMCustomdrawLinewide)
+//ON_WM_HSCROLL()
 END_MESSAGE_MAP()
 
 
@@ -65,23 +73,23 @@ BOOL Ctry3Dlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-	RECT rect;
-	GetClientRect(&rect);
 	tmp =NULL;
 	img=NULL;
 
-	GetDlgItem(IDC_RADIO1)->MoveWindow(rect.right-rect.left-75,10,70,15);
-	GetDlgItem(IDC_RADIO2)->MoveWindow(rect.right-rect.left-75,30,70,15);
-	GetDlgItem(IDC_RADIO3)->MoveWindow(rect.right-rect.left-75,50,70,15);
-	GetDlgItem(IDC_RADIO4)->MoveWindow(rect.right-rect.left-75,70,70,15);
-	GetDlgItem(IDC_RADIO5)->MoveWindow(rect.right-rect.left-75,90,70,15);
-	GetDlgItem(IDC_RADIO6)->MoveWindow(rect.right-rect.left-75,110,70,15);
-	GetDlgItem(IDC_PICTURE)->MoveWindow(rect.left,rect.top,rect.right-rect.left-80,rect.bottom);
-	GetDlgItem(IDC_CLEAR)->MoveWindow(rect.right-rect.left-75,rect.bottom-160,70,30);
-	GetDlgItem(IDC_OPEN)->MoveWindow(rect.right-rect.left-75,rect.bottom-120,70,30);
-	GetDlgItem(IDC_SAVE)->MoveWindow(rect.right-rect.left-75,rect.bottom-80,70,30);
-	GetDlgItem(IDCANCEL)->MoveWindow(rect.right-rect.left-75,rect.bottom-40,70,30);
-
+// 	GetDlgItem(IDC_RADIO1)->MoveWindow(rect.right-rect.left-75,10,70,15);
+// 	GetDlgItem(IDC_RADIO2)->MoveWindow(rect.right-rect.left-75,30,70,15);
+// 	GetDlgItem(IDC_RADIO3)->MoveWindow(rect.right-rect.left-75,50,70,15);
+// 	GetDlgItem(IDC_RADIO4)->MoveWindow(rect.right-rect.left-75,70,70,15);
+// 	GetDlgItem(IDC_RADIO5)->MoveWindow(rect.right-rect.left-75,90,70,15);
+// 	GetDlgItem(IDC_RADIO6)->MoveWindow(rect.right-rect.left-75,110,70,15);
+// 	GetDlgItem(IDC_PICTURE)->MoveWindow(rect.left,rect.top,rect.right-rect.left-80,rect.bottom);
+// 	GetDlgItem(IDC_CLEAR)->MoveWindow(rect.right-rect.left-75,rect.bottom-160,70,30);
+// 	GetDlgItem(IDC_OPEN)->MoveWindow(rect.right-rect.left-75,rect.bottom-120,70,30);
+// 	GetDlgItem(IDC_SAVE)->MoveWindow(rect.right-rect.left-75,rect.bottom-80,70,30);
+// 	GetDlgItem(IDCANCEL)->MoveWindow(rect.right-rect.left-75,rect.bottom-40,70,30);
+	m_slider.SetRange(1,30);
+	m_slider.SetPos(1);
+	m_color.SetColor(RGB(0,0,0));
 
 	ModifyStyle(WS_THICKFRAME, 0, SWP_FRAMECHANGED|SWP_DRAWFRAME);    //禁止对话框大小改变
 
@@ -116,38 +124,35 @@ void Ctry3Dlg::OnPaint()
 
 
 		CPaintDC dc(this);
-		RECT rect;
-		GetClientRect(&rect);//得到可绘制的区域范围
+		CRect rect;
+		CDC MemDC; //首先定义一个显示设备对象  
+		CBitmap MemBitmap;//定义一个位图对象 
 
 		CWnd*c=GetDlgItem(IDC_PICTURE);//获取控件句柄,用于确定显示范围
 		c->GetWindowRect(&rect);//相对于屏幕
 		ScreenToClient(&rect);//相对于父控件
-		if(img) img->StretchBlt(dc,rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top,0,0,img->GetWidth(),img->GetHeight(),SRCCOPY);
+		if(img) 
+			img->StretchBlt(dc,rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top,0,0,img->GetWidth(),img->GetHeight(),SRCCOPY);
+
+		MemDC.CreateCompatibleDC(NULL);//创建兼容句柄和位图
+		MemBitmap.CreateCompatibleBitmap(CDC::FromHandle(::GetDC(NULL)),rect.right-rect.left,rect.bottom-rect.top);
+		MemDC.SelectObject(&MemBitmap);
+		MemDC.FillSolidRect(0,0,rect.right-rect.left,rect.bottom-rect.top,RGB(255,255,255));
 
 
-// 		CDC MemDC; //首先定义一个显示设备对象  
-// 		CBitmap MemBitmap;//定义一个位图对象  
-// 
-// 
-// 		MemDC.CreateCompatibleDC(NULL);//创建兼容句柄和位图
-// 		MemBitmap.CreateCompatibleBitmap(CDC::FromHandle(::GetDC(NULL)),rect.right-rect.left,rect.bottom-rect.top);
-// 		
-//  		CBitmap *pOldBit=MemDC.SelectObject(&MemBitmap);  
-// 		MemDC.FillSolidRect(0,0,rect.right-rect.left,rect.bottom-rect.top,RGB(255,255,255)); ;
-// 
-// 
 		CBrush *pBrush = CBrush::FromHandle((HBRUSH)GetStockObject(NULL_BRUSH));
-		dc.SelectObject(pBrush);
+		MemDC.SelectObject(pBrush);
 
-		if(tmp)tmp->draw(dc);
+		if(tmp)tmp->draw(MemDC);
 		for(unsigned int i=0;i<data.size();i++)
-			data[i]->draw(dc);
+			data[i]->draw(MemDC);
 
 
-// 		dc.BitBlt(0,0,rect.right-rect.left,rect.bottom-rect.top,&MemDC,0,0,SRCCOPY);  
-// 
-// 		MemDC.DeleteDC();
-// 		MemBitmap.DeleteObject();
+
+		dc.BitBlt(rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top,&MemDC,0,0,SRCCOPY);  
+
+		MemDC.DeleteDC();
+		MemBitmap.DeleteObject();
 
 
 		CDialogEx::OnPaint();
@@ -224,8 +229,8 @@ void Ctry3Dlg::OnRadio6()
 void Ctry3Dlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-    if(tmp==NULL) tmp=new Draw(m_radio1);
-	else {delete tmp; tmp=new Draw(m_radio1);}
+    if(tmp==NULL) tmp=new Draw(m_radio1,m_slider.GetPos(),m_color.GetColor());
+	else {delete tmp; tmp=new Draw(m_radio1,m_slider.GetPos(),m_color.GetColor());}
 	tmp->x1=tmp->x2=point.x;
 	tmp->y1=tmp->y2=point.y;
 	CDialogEx::OnLButtonDown(nFlags, point);
@@ -252,7 +257,7 @@ void Ctry3Dlg::OnMouseMove(UINT nFlags, CPoint point)
 		{
 			if(tmp){tmp->x2=point.x;tmp->y2=point.y;data.push_back(tmp);}
 			tmp=NULL;
-			tmp=new Draw(m_radio1);
+			tmp=new Draw(m_radio1,m_slider.GetPos(),m_color.GetColor());
 			tmp->x1=tmp->x2=point.x;
 			tmp->y1=tmp->y2=point.y;
 		}
@@ -307,3 +312,30 @@ void Ctry3Dlg::OnBnClickedSave()
 	MemDC.DeleteDC();
 	MemBitmap.DeleteObject();
 }
+
+
+
+
+void Ctry3Dlg::OnBnClickedClear()
+{
+	// TODO: 在此添加控件通知处理程序代码
+// 	if (data.size()!=0)
+// 	{
+// 		AfxMessageBox("是否保存？",)
+// 	}
+}
+
+
+//void Ctry3Dlg::OnNMCustomdrawLinewide(NMHDR *pNMHDR, LRESULT *pResult)
+//{
+//	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+//	// TODO: 在此添加控件通知处理程序代码
+//	*pResult = 0;
+//}
+
+
+//void Ctry3Dlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+//{
+//	// TODO: 在此添加消息处理程序代码和/或调用默认值
+//	CDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
+//}
